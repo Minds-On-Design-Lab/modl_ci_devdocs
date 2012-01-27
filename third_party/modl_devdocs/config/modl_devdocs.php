@@ -3,5 +3,7 @@
 $config = array(
 
 	'version'		=> '1.0',
-	'build'			=> '20120127'
+	'build'			=> '20120127',
+
+	'default_name'	=> 'devdocs',
 );

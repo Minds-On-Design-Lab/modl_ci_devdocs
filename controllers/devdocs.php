@@ -6,11 +6,12 @@ class Devdocs extends CI_Controller {
 		parent::__construct();
 
 		$this->load->add_package_path(APPPATH.'third_party/modl_devdocs', true);
-		$this->load->library('Textile');
+		$this->load->library('Modl_devdocs');
 	}
 
 	public function index() {
-		$this->load->view('modl_devdocs/index.html');
+
+		$this->modl_devdocs->parse();
 	}
 
 }
