@@ -150,7 +150,7 @@ class Modl_devdocs {
 			);
 		}
 
-		return '<ul>'.implode("\n", $out).'</ul>';
+		return '<ul>'.implode("\n", $out)."</ul>\n";
 	}
 
 }
