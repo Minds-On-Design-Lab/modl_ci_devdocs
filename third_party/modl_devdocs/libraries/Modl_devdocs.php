@@ -3,42 +3,79 @@
 class Modl_devdocs {
 
 	private $CI = false;
+	private $contents = false;
 
 	public function __construct() {
 		$this->CI = get_instance();
 
 		$this->CI->load->library('Textile');
 		$this->CI->load->config('modl_devdocs', true);
+		$this->CI->load->driver('cache', array('adapter' => 'file'));
 
 	}
 
-	public function parse($path = false, $return = false) {
-		$path = $this->load($path);
+	public function fetch($path = false, $force = false, $return = false) {
+
+		$path = $this->resolve_path($path);
+
 		if( !$path ) {
 			show_error(sprintf("Could not load %s", $path));
 			return false;
 		}
 
-		$contents = file_get_contents($path);
-
-		if( $this->CI->config->item('auto_toc', 'modl_devdocs')) {
-			$contents = $this->auto_toc($contents);
+		if( $force === false
+			&& $this->CI->config->item('enable_cache', 'modl_devdocs')
+		) {
+			$data = $this->fetch_cached($path);
+		} else {
+			$data = $this->fetch_file($path);
 		}
-
-		$parsed = $this->CI->textile->TextileThis($contents);
-
 
 		if( $return ) {
-			return $parsed;
+			return $data;
 		}
 
-		$this->CI->load->view('modl_devdocs/index.html', array(
-			'contents' => $parsed
-		));
+		$this->CI->load->view('modl_devdocs/index.html', $data);
 
 	}
 
-	private function load($path = false) {
+	private function fetch_cached($path) {
+		$hash = hash('crc32', $path);
+
+		if( !($data = $this->CI->cache->get($hash)) ) {
+			$data = $this->fetch_file($path);
+		}
+
+		if( !is_array($data) ) {
+			return unserialize($data);
+		}
+
+		return $data;
+	}
+
+	private function fetch_file($path) {
+		$this->contents = file_get_contents($path);
+		$toc = false;
+
+		if( $this->CI->config->item('auto_toc', 'modl_devdocs')) {
+			$toc = $this->auto_toc();
+		}
+
+		$parsed = $this->CI->textile->TextileThis($this->contents);
+
+		$data = array(
+			'contents' => $parsed,
+			'toc' => $toc
+		);
+
+		if( $this->CI->config->item('enable_cache', 'modl_devdocs') ) {
+			$this->CI->cache->save(hash('crc32', $path), serialize($data));
+		}
+
+		return $data;
+	}
+
+	private function resolve_path($path = false) {
 
 		if( !$path ) {
 			$default = $this->CI->config->item('default_name', 'modl_devdocs');
@@ -62,7 +99,9 @@ class Modl_devdocs {
 		return false;
 	}
 
-	private function auto_toc($str) {
+	private function auto_toc() {
+		$str = $this->contents;
+
 		// this is a un-textiled string, btw
 		$lines = preg_split("/((?<!\\\|\r)\n)|((?<!\\\)\r\n)/", $str);
 		$map = array();
@@ -126,9 +165,11 @@ class Modl_devdocs {
 			$out[] = $line;
 		}
 
-		$toc = '<notextile><nav id="_auto_toc">'.$this->build_toc($map).'</nav></notextile>';
+		$toc = $this->build_toc($map);
 
-		return $toc."\n\n".implode("\n", $out);
+		$this->contents = implode("\n", $out);
+
+		return $toc;
 
 	}
 
