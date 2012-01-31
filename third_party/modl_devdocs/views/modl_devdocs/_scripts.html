@@ -1,0 +1,19 @@
+	<!-- Included JS Files -->
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script type="text/javascript" src="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/modernizr.foundation.js') ?>"></script>
+	<script src="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/shl/scripts/shCore.js') ?>" type="text/javascript"></script>
+	<script src="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/shl/scripts/shAutoloader.js') ?>" type="text/javascript"></script>
+	<script src="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/shl/scripts/shBrushXml.js') ?>" type="text/javascript"></script>
+
+	<script type="text/javascript">
+		$(document).ready(function() {
+			SyntaxHighlighter.autoloader(
+			  'js javascript <?php echo base_url($this->config->item('asset_path', 'modl_devdocs')) ?>/js/shl/scripts/shBrushJScript.js',
+			  'php <?php echo base_url($this->config->item('asset_path', 'modl_devdocs')) ?>/js/shl/scripts/shBrushPhp.js',
+			  'css <?php echo base_url($this->config->item('asset_path', 'modl_devdocs')) ?>/js/shl/scripts/shBrushCss.js',
+			  'xml html <?php echo base_url($this->config->item('asset_path', 'modl_devdocs')) ?>/js/shl/scripts/shBrushXml.js'
+			);
+
+			SyntaxHighlighter.all();
+		});
+	</script>
