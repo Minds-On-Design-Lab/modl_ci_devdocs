@@ -124,9 +124,7 @@ echo $data['contents'];
 
 h2. Config Options
 
-|^.
 |Option|Default|Description|
-|-.
 |enable_cache|TRUE|Caches the generated documents|
 |asset_path|modl_devdocs|Relative path to the web assets|
 |auto_toc|TRUE|Automatically generate a table of contents|
