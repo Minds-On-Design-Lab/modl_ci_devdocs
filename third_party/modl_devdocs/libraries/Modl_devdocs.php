@@ -82,7 +82,9 @@ class Modl_devdocs {
 			$toc = $this->auto_toc();
 		}
 
-		$parsed = $this->CI->textile->TextileThis($this->contents);
+		$parsed = $this->parse_code_blocks($this->contents);
+		$parsed = $this->CI->textile->TextileThis($parsed);
+
 
 		$data = array(
 			'contents' => $parsed,
@@ -118,6 +120,31 @@ class Modl_devdocs {
 
 		// give up
 		return false;
+	}
+
+	private function parse_code_blocks($str) {
+		$lines = preg_split("/((?<!\\\|\r)\n)|((?<!\\\)\r\n)/", $str);
+		$out = array();
+
+		foreach( $lines as $line ) {
+			if( strpos($line, '<example') !== false ) {
+				$line = preg_replace(
+					'/\<example( type\="([a-zA-Z]*)")?\>/',
+					'<notextile><script type="syntaxhighlighter" class="brush: $2"><![CDATA[',
+					$line
+				);
+			} elseif( strpos($line, '</example>') !== false ) {
+				$line = str_replace(
+					'</example>',
+					']]></script></notextile>',
+					$line
+				);
+			}
+
+			$out[] = $line;
+		}
+
+		return implode("\n", $out);
 	}
 
 	private function auto_toc() {

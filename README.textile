@@ -1,22 +1,147 @@
-h1. A Developer Documentation package for CodeIgniter 2+.
+h1. MOD Lab DevDocs CI Package
+
+DevDocs is a package for "CodeIgniter":http://codeigniter.com that makes documenting your project simple and easy.
+
+DevDocs is:
+
+* A simple way to document your project
+* A great way to store simple, easy to read and edit instructions with your project
+* A rockin' way to get a new developer up to speed
+
+DevDocs is not:
+
+* A code documentation parser
+* A zeppelin
 
 h2. Install
 
-# Copy <code>third_party/modl_devdocs</code> to your application's <code>third_party</code> folder.
-# Copy <code>controllers/devdocs.php</code> into your application's <code>controllers</code> folder.
-# Write your docs, save the file to <code>docs/devdocs.textile</code> and visit 'yoursite.com/devdocs' to see the results.
+There are two ways to install DevDocs, the simple way and the custom way.
 
-h2. Config
+h3. Simple Install
 
-There are a bunch of config options. More to follow
+# Copy <code>application/third_party/modl_devdocs</code> to your application's <code>third_party</code> directory.
+# Copy <code>application/controllers/devdocs.php</code> to your application's <code>controllers</code> directory.
+# Copy <code>www/modl_devdocs</code> to your application's web root
+# Write docs, store them as <code>APPPATH/docs/devdocs.textile</code>
+# Visit <code>path/to/your/site/index.php/devdocs</code>
+
+
+h3. Custom install
+
+The custom method is great if you need to control access to the docs. Say, by putting them within an authenticated admin area. First, we need to put the assets in the right place:
+
+# Copy <code>application/third_party/modl_devdocs</code> to your application's <code>third_party</code> directory.
+# Copy <code>www/modl_devdocs</code> to your application's web root
+
+Then just load the library and you can control how your docs are used. For example to use the defaults:
+
+<pre>
+class My_Controller extends CI_Controller {
+	public function __construct() {
+		parent::__construct();
+		// some authentication or some such
+		$this->load->add_package_path(APPPATH.'third_party/modl_devdocs', true);
+		$this->load->library('Modl_devdocs');
+	}
+	public function docs() {
+		// load the default view, with the default file
+		$this->modl_devdocs->fetch();
+	}
+}
+</pre>
+
+You, could also load the docs and return the output to your own view:
+
+<pre>
+	public function docs() {
+		$docs = $this->modl_devdocs->fetch('path/to/docs.textile', false, true);
+		$this->load->view('path/to/my/view.php', $docs);
+	}
+</pre>
+
+Since the <code>fetch()</code> method will return the contents and TOC as an array, you can just pass that directly to the view loader. You can then access your docs with the <code>$contents</code> and <code>$toc</code> variables.
+
+An example view might look like:
+
+<pre>
+<div id="toc"><?php echo $toc?></div>
+<div id="docs"><?php echo $contents?></div>
+</pre>
+
+If you're creating your own view and you want to support the syntax highlights, make sure to include the <code>_scripts.html</code> partial in your template:
+
+<pre>
+...
+<div id="toc"><?php echo $toc?></div>
+<div id="docs"><?php echo $contents?></div>
+<?php $this->load->view('modl_devdocs/_scripts.html') ?>
+...
+</pre>
+
+h2. Adding code examples
+
+DevDocs supports syntax highlights via the "SyntaxHighlighter":http://alexgorbatchev.com/SyntaxHighlighter library. In order to get around textile formatting and to ensure proper code highlights, we use a special <code>example</code> tag.
+
+<pre class="brush:html">
+&lt;example type="php"&gt;
+	My_Code_Example {
+		public function sweet() {
+			echo "Hello World";
+		}
+	}
+&lt;/example&gt;
+</pre>
+
+h2. MODL_DevDocs Library
+
+The library has only one public method <code>MODL_DevDocs::fetch()</code>.
+
+h3. fetch()
+
+*fetch([path _string_ [force _bool_ [return _bool_ ]]])*
+
+Fetch finds and processes the textile documentation. It takes three optional parameters
+
+h5. Parameters
+
+* path - _string_ the path to the file. By default looks in <code>APPPATH/docs/devdocs.textile</code>
+* force - _bool_ passing TRUE will force DevDocs to reload the cache
+* return - _bool_ passing TRUE will return the parsed data instead of loading the default view
+
+h5. Return
+
+If you pass the optional third parameter, <code>fetch()</code> returns an array containing:
+
+* contents - _string_ the parsed documentation
+* toc - _string_ a table of contents list
+
+h5. Example
+
+<pre class="brush:php">
+$data = $this->modl_devdocs->fetch('path/to/foo.textile', false, true);
+echo $data['contents'];
+</pre>
+
+h2. Config Options
+
+|^.
+|Option|Default|Description|
+|-.
+|enable_cache|TRUE|Caches the generated documents|
+|asset_path|modl_devdocs|Relative path to the web assets|
+|auto_toc|TRUE|Automatically generate a table of contents|
+|default_name|devdocs|Default name for the documentation file|
+
+h2. Known Bugs
+
+* Empty lines in code examples cause Textile to freak out... working on that
 
 h2. License
 
-Copyright (c) 2012 Minds On Design Lab
+Copyright (c) 2012 Minds On Design Lab, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
