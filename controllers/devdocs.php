@@ -11,7 +11,7 @@ class Devdocs extends CI_Controller {
 
 	public function index() {
 
-		$this->modl_devdocs->parse();
+		$this->modl_devdocs->fetch();
 	}
 
 }

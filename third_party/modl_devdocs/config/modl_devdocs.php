@@ -5,6 +5,8 @@ $config = array(
 	'version'		=> '1.0',
 	'build'			=> '20120130',
 
+	'enable_cache'	=> true,
+
 	'auto_toc'		=> true,
 
 	'default_name'	=> 'devdocs',
