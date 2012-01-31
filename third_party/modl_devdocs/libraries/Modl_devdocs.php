@@ -121,7 +121,7 @@ class Modl_devdocs {
 		if( $this->CI->config->item('enable_cache', 'modl_devdocs') ) {
 			$this->CI->cache->save(hash('crc32', $this->path), serialize(array(
 				'pages' => $pages,
-				'links' => $links
+				'links' => $this->links
 			)));
 		}
 
