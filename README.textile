@@ -83,13 +83,13 @@ h2. Adding code examples
 DevDocs supports syntax highlights via the "SyntaxHighlighter":http://alexgorbatchev.com/SyntaxHighlighter library. In order to get around textile formatting and to ensure proper code highlights, we use a special <code>example</code> tag.
 
 <pre class="brush:html">
-&lt;example type="php"&gt;
+<example type="php">
 	My_Code_Example {
 		public function sweet() {
 			echo "Hello World";
 		}
 	}
-&lt;/example&gt;
+</example>
 </pre>
 
 h2. MODL_DevDocs Library
