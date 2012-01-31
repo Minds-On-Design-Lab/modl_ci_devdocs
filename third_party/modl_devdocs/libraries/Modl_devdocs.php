@@ -4,6 +4,7 @@ class Modl_devdocs {
 
 	private $CI = false;
 	private $contents = false;
+	private $path = false;
 
 	public function __construct() {
 		$this->CI = get_instance();
@@ -11,14 +12,15 @@ class Modl_devdocs {
 		$this->CI->load->library('Textile');
 		$this->CI->load->config('modl_devdocs', true);
 		$this->CI->load->driver('cache', array('adapter' => 'file'));
+		$this->CI->load->helper('file');
 
 	}
 
 	public function fetch($path = false, $force = false, $return = false) {
 
-		$path = $this->resolve_path($path);
+		$this->path = $this->resolve_path($path);
 
-		if( !$path ) {
+		if( !$this->path ) {
 			show_error(sprintf("Could not load %s", $path));
 			return false;
 		}
@@ -26,9 +28,9 @@ class Modl_devdocs {
 		if( $force === false
 			&& $this->CI->config->item('enable_cache', 'modl_devdocs')
 		) {
-			$data = $this->fetch_cached($path);
+			$data = $this->fetch_cached();
 		} else {
-			$data = $this->fetch_file($path);
+			$data = $this->fetch_file();
 		}
 
 		if( $return ) {
@@ -39,11 +41,24 @@ class Modl_devdocs {
 
 	}
 
-	private function fetch_cached($path) {
-		$hash = hash('crc32', $path);
+	public function get_last_build() {
+		if( $this->CI->config->item('enable_cache', 'modl_devdocs') ) {
+			// check cache first
+			$meta = $this->CI->cache->get_metadata(hash('crc32', $this->path));
+			if( $meta && array_key_exists('mtime', $meta) ) {
+				return $meta['mtime'];
+			}
+		}
+
+		$meta = get_file_info($this->path, 'date');
+		return $meta['date'];
+	}
+
+	private function fetch_cached() {
+		$hash = hash('crc32', $this->path);
 
 		if( !($data = $this->CI->cache->get($hash)) ) {
-			$data = $this->fetch_file($path);
+			$data = $this->fetch_file($this->path);
 		}
 
 		if( !is_array($data) ) {
@@ -53,9 +68,15 @@ class Modl_devdocs {
 		return $data;
 	}
 
-	private function fetch_file($path) {
-		$this->contents = file_get_contents($path);
+	private function fetch_file() {
+		$this->contents = file_get_contents($this->path);
 		$toc = false;
+
+		$this->contents = str_replace(
+			array('<pre', '</pre>'),
+			array('<notextile><pre', '</pre></notextile>'),
+			$this->contents
+		);
 
 		if( $this->CI->config->item('auto_toc', 'modl_devdocs')) {
 			$toc = $this->auto_toc();
@@ -69,7 +90,7 @@ class Modl_devdocs {
 		);
 
 		if( $this->CI->config->item('enable_cache', 'modl_devdocs') ) {
-			$this->CI->cache->save(hash('crc32', $path), serialize($data));
+			$this->CI->cache->save(hash('crc32', $this->path), serialize($data));
 		}
 
 		return $data;

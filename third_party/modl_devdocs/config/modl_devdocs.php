@@ -4,7 +4,10 @@ $config = array(
 
 	// The DevDocs package can store cached versions of your docs for
 	// faster loading of large, complicated documentation.
-	'enable_cache'	=> true,
+	'enable_cache'	=> false,
+
+	// The path to the CSS and javascript support files
+	'asset_path'	=> 'modl_devdocs',
 
 	// DevDocs can generate a table of contents based on your header structure
 	'auto_toc'		=> true,

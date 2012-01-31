@@ -11,8 +11,11 @@
 	<title><?php echo $title ? $title : 'Developer Documentation' ?></title>
 
 	<!-- Included CSS Files -->
-	<style type="text/css"><?php $this->load->view('modl_devdocs/components/foundation.css') ?></style>
-	<style type="text/css"><?php $this->load->view('modl_devdocs/components/master.css') ?></style>
+	<link rel="stylesheet" href="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/css/foundation.css') ?>" />
+	<link rel="stylesheet" href="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/css/master.css') ?>" />
+
+	<link href="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/shl/styles/shCore.css') ?>" rel="stylesheet" type="text/css" />
+	<link href="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/shl/styles/shThemeDefault.css') ?>" rel="stylesheet" type="text/css" />
 
 	<!--[if lt IE 9]>
 		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -24,18 +27,38 @@
 	<div class="container">
 
 		<div class="row">
-			<?php echo $toc ?>
-			<?php echo $contents ?>
+			<div id="main_toc">
+				<div class="panel"><?php echo $toc ?></div>
+			</div>
+			<div id="main_docs">
+				<?php echo $contents ?>
+			</div>
 		</div>
 
 		<footer class="row">
-			MODL Devdocs version <?php echo $this->config->item('version', 'modl_devdocs') ?> (<?php echo $this->config->item('build', 'modl_devdocs') ?>). Powered by Textile.
+			Last built <span class="green radius label"><?php echo date('m/d g:ia', $this->modl_devdocs->get_last_build()) ?></span> | Version <?php echo $this->config->item('version', 'modl_devdocs') ?> (<?php echo $this->config->item('build', 'modl_devdocs') ?>) | &copy; <a href="http://mod-lab.com">Minds On Design Lab, Inc.</a>
+			<br />
+
 		</footer>
 	</div>
 
 	<!-- Included JS Files -->
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script type="text/javascript" src="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/modernizr.foundation.js') ?>"></script>
+	<script src="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/shl/scripts/shCore.js') ?>" type="text/javascript"></script>
+	<script src="<?php echo base_url($this->config->item('asset_path', 'modl_devdocs').'/js/shl/scripts/shAutoloader.js') ?>" type="text/javascript"></script>
+
 	<script type="text/javascript">
-		<?php $this->load->view('modl_devdocs/components/modernizr.foundation.js') ?>
+		$(document).ready(function() {
+			SyntaxHighlighter.autoloader(
+			  'js javascript <?php echo base_url($this->config->item('asset_path', 'modl_devdocs')) ?>/js/shl/scripts/shBrushJScript.js',
+			  'php <?php echo base_url($this->config->item('asset_path', 'modl_devdocs')) ?>/js/shl/scripts/shBrushPhp.js',
+			  'css <?php echo base_url($this->config->item('asset_path', 'modl_devdocs')) ?>/js/shl/scripts/shBrushCss.js',
+			  'xml html <?php echo base_url($this->config->item('asset_path', 'modl_devdocs')) ?>/js/shl/scripts/shBrushXml.js'
+			);
+			 
+			SyntaxHighlighter.all();
+		});
 	</script>
 </body>
 </html>

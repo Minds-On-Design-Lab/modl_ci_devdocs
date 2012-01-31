@@ -1,0 +1,24 @@
+#main_toc {
+	position: fixed;
+	width: 180px;
+}
+	#main_toc ul {
+		margin-bottom: 0em;
+	}
+	#main_toc ul li {
+		margin: 0.75em 0;
+		margin-left: 0.75em;
+		font-size: 1em;
+		padding: 0;
+	}
+	#main_toc > ul > li {
+		margin-left: 0;
+	}
+#main_docs {
+	margin-left: 240px;
+}
+footer {
+	text-align: center;
+	padding: 50px 0;
+}
+
