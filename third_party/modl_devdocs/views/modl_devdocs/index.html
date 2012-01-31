@@ -1,5 +1,42 @@
-<?php echo $contents ?>
+<!DOCTYPE html>
 
-<footer>
-	MODL Devdocs version <?php echo $this->config->item('version', 'modl_devdocs') ?> (<?php echo $this->config->item('build', 'modl_devdocs') ?>). Powered by Textile.
-</footer>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8" />
+
+	<title><?php echo $title ? $title : 'Developer Documentation' ?></title>
+
+	<!-- Included CSS Files -->
+	<style type="text/css"><?php $this->load->view('modl_devdocs/components/foundation.css') ?></style>
+	<style type="text/css"><?php $this->load->view('modl_devdocs/components/master.css') ?></style>
+
+	<!--[if lt IE 9]>
+		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+</head>
+<body>
+
+	<div class="container">
+
+		<div class="row">
+			<?php echo $toc ?>
+			<?php echo $contents ?>
+		</div>
+
+		<footer class="row">
+			MODL Devdocs version <?php echo $this->config->item('version', 'modl_devdocs') ?> (<?php echo $this->config->item('build', 'modl_devdocs') ?>). Powered by Textile.
+		</footer>
+	</div>
+
+	<!-- Included JS Files -->
+	<script type="text/javascript">
+		<?php $this->load->view('modl_devdocs/components/modernizr.foundation.js') ?>
+	</script>
+</body>
+</html>
+
