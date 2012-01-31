@@ -9,8 +9,8 @@ $config = array(
 	// The path to the CSS and javascript support files
 	'asset_path'	=> 'modl_devdocs',
 
-	// DevDocs can generate a table of contents based on your header structure
-	'auto_toc'		=> true,
+	// DevDocs can generate pages for every heading 1 it finds
+	'auto_page'		=> true,
 
 	// The default name for the documentation file
 	'default_name'	=> 'devdocs',

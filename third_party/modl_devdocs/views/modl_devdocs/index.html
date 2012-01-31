@@ -18,7 +18,13 @@
 
 		<div class="row">
 			<div id="main_toc">
-				<div class="panel"><?php echo $toc ?></div>
+				<div class="panel">
+				<ul>
+				<?php foreach( $this->modl_devdocs->get_links() as $link ) : ?>
+					<li><?php echo $link ?></li>
+				<?php endforeach ?>
+				</ul>
+				</div>
 			</div>
 			<div id="main_docs">
 				<?php echo $contents ?>

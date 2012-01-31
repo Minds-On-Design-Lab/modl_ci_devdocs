@@ -42,6 +42,7 @@ class My_Controller extends CI_Controller {
 		// some authentication or some such
 		$this->load->add_package_path(APPPATH.'third_party/modl_devdocs', true);
 		$this->load->library('Modl_devdocs');
+		$this->modl_devdocs->load();
 	}
 	public function docs() {
 		// load the default view, with the default file
@@ -54,17 +55,16 @@ You, could also load the docs and return the output to your own view:
 
 <pre>
 	public function docs() {
-		$docs = $this->modl_devdocs->fetch('path/to/docs.textile', false, true);
-		$this->load->view('path/to/my/view.php', $docs);
+		$docs = $this->modl_devdocs->load('path/to/docs.textile', false);
+		$this->load->view('path/to/my/view.php', array(
+			'contents' => $this->modl_devdocs->fetch(0, true)
+		));
 	}
 </pre>
-
-Since the <code>fetch()</code> method will return the contents and TOC as an array, you can just pass that directly to the view loader. You can then access your docs with the <code>$contents</code> and <code>$toc</code> variables.
 
 An example view might look like:
 
 <pre>
-<div id="toc"><?php echo $toc?></div>
 <div id="docs"><?php echo $contents?></div>
 </pre>
 
@@ -72,17 +72,32 @@ If you're creating your own view and you want to support the syntax highlights, 
 
 <pre>
 ...
-<div id="toc"><?php echo $toc?></div>
 <div id="docs"><?php echo $contents?></div>
 <?php $this->load->view('modl_devdocs/_scripts.html') ?>
 ...
 </pre>
 
-h2. Adding code examples
+h2. Usage
+
+h3. Pagination
+
+DevDocs can automatically split your docs into pages based on the h1. elements. To pagination your docs, make sure the 'auto_page' config option set set to TRUE. The packaged controller will load your docs automatically, but if you're going with a custom controller, you'll have to pass the page into the fetch method:
+
+<pre>
+public function index() {
+	$page = 0;
+	if( $this->input->get('_dp') ) {
+		$page = $this->input->get('_dp');
+	}
+	$this->modl_devdocs->fetch($page);
+}
+</pre>
+
+h3. Adding code examples
 
 DevDocs supports syntax highlights via the "SyntaxHighlighter":http://alexgorbatchev.com/SyntaxHighlighter library. In order to get around textile formatting and to ensure proper code highlights, we use a special <code>example</code> tag.
 
-<pre class="brush:html">
+<pre>
 <example type="php">
 	My_Code_Example {
 		public function sweet() {
@@ -94,42 +109,76 @@ DevDocs supports syntax highlights via the "SyntaxHighlighter":http://alexgorbat
 
 h2. MODL_DevDocs Library
 
-The library has only one public method <code>MODL_DevDocs::fetch()</code>.
+h3. load()
 
-h3. fetch()
+*load([path _string_ [force _bool]])*
 
-*fetch([path _string_ [force _bool_ [return _bool_ ]]])*
-
-Fetch finds and processes the textile documentation. It takes three optional parameters
+Load find and processes the textile documentation. Processing code blocks and splitting the docs into pages.
 
 h5. Parameters
 
 * path - _string_ the path to the file. By default looks in <code>APPPATH/docs/devdocs.textile</code>
 * force - _bool_ passing TRUE will force DevDocs to reload the cache
+
+h3. fetch()
+
+*fetch([page _int_ [return _bool_ ]])*
+
+Fetch displays the processed documentation. If you are paginating your docs, you can tell it what page to display here.
+
+h5. Parameters
+
+* page - _int_ the page number to show
 * return - _bool_ passing TRUE will return the parsed data instead of loading the default view
 
 h5. Return
 
-If you pass the optional third parameter, <code>fetch()</code> returns an array containing:
+If you pass the optional second parameter, <code>fetch()</code> returns a string representing the processed docs.
 
-* contents - _string_ the parsed documentation
-* toc - _string_ a table of contents list
 
 h5. Example
 
-<pre class="brush:php">
-$data = $this->modl_devdocs->fetch('path/to/foo.textile', false, true);
-echo $data['contents'];
+<pre>
+// load a specific file and force a cache reload
+$this->modl_devdocs->load('path/to/foo.textile', true);
+// fetch the second documentation page
+$docs = $this->modl_devdocs->fetch(1, true);
+echo $docs;
+</pre>
+
+h3. get_links()
+
+*get_links()*
+
+Get links returns an array with links to the generated documentation pages
+
+h5. Returns
+
+An array containing anchor tag strings
+
+h5. Example:
+
+<pre>
+	<div id="main_toc">
+		<div class="panel">
+		<ul>
+		<?php foreach( $this->modl_devdocs->get_links() as $link ) : ?>
+			<li><?php echo $link ?></li>
+		<?php endforeach ?>
+		</ul>
+		</div>
+	</div>
+	<div id="main_docs">
+		<?php echo $contents ?>
+	</div>
 </pre>
 
 h2. Config Options
 
-|^.
 |Option|Default|Description|
-|-.
 |enable_cache|TRUE|Caches the generated documents|
 |asset_path|modl_devdocs|Relative path to the web assets|
-|auto_toc|TRUE|Automatically generate a table of contents|
+|auto_page|TRUE|Automatically split docs into pages|
 |default_name|devdocs|Default name for the documentation file|
 
 h2. Known Bugs

@@ -7,11 +7,15 @@ class Devdocs extends CI_Controller {
 
 		$this->load->add_package_path(APPPATH.'third_party/modl_devdocs', true);
 		$this->load->library('Modl_devdocs');
+		$this->modl_devdocs->load();
 	}
 
 	public function index() {
-
-		$this->modl_devdocs->fetch();
+		$page = 0;
+		if( $this->input->get('_dp') ) {
+			$page = $this->input->get('_dp');
+		}
+		$this->modl_devdocs->fetch($page);
 	}
 
 }

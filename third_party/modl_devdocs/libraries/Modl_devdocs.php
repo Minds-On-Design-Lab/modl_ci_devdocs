@@ -3,8 +3,13 @@
 class Modl_devdocs {
 
 	private $CI = false;
+
 	private $contents = false;
 	private $path = false;
+
+	private $pages = array();
+
+	private $links = array();
 
 	public function __construct() {
 		$this->CI = get_instance();
@@ -16,7 +21,7 @@ class Modl_devdocs {
 
 	}
 
-	public function fetch($path = false, $force = false, $return = false) {
+	public function load($path = false, $force = false) {
 
 		$this->path = $this->resolve_path($path);
 
@@ -28,16 +33,25 @@ class Modl_devdocs {
 		if( $force === false
 			&& $this->CI->config->item('enable_cache', 'modl_devdocs')
 		) {
-			$data = $this->fetch_cached();
+			$this->load_cached();
 		} else {
-			$data = $this->fetch_file();
+			$this->load_file();
+		}
+	}
+
+	public function fetch($page = 0, $return = false) {
+		if( !is_numeric($page) || count($this->pages) < $page-1) {
+			show_error('Page not found');
+			return false;
 		}
 
 		if( $return ) {
-			return $data;
+			return $this->pages[$page];
 		}
 
-		$this->CI->load->view('modl_devdocs/index.html', $data);
+		$this->CI->load->view('modl_devdocs/index.html', array(
+			'contents' => $this->pages[$page]
+		));
 
 	}
 
@@ -54,48 +68,64 @@ class Modl_devdocs {
 		return $meta['date'];
 	}
 
-	private function fetch_cached() {
+	public function get_links() {
+		return $this->links;
+	}
+
+	private function build_links($pages) {
+		$links = array();
+
+		$url = current_url();
+
+		foreach( $pages as $i => $page ) {
+			$line = reset($page);
+			$label = trim(substr($line, 3));
+
+			$links[] = '<a href="'.$url.'?_dp='.$i.'">'.$label.'</a>';
+		}
+
+		return $links;
+	}
+
+	private function load_cached() {
 		$hash = hash('crc32', $this->path);
 
 		if( !($data = $this->CI->cache->get($hash)) ) {
-			$data = $this->fetch_file($this->path);
+			$this->load_file($this->path);
+			return;
 		}
 
-		if( !is_array($data) ) {
-			return unserialize($data);
-		}
+		$data = unserialize($data);
 
-		return $data;
+		$this->pages = $data['pages'];
+		$this->links = $data['links'];
 	}
 
-	private function fetch_file() {
-		$this->contents = file_get_contents($this->path);
+	private function load_file() {
+		$this->contents = file($this->path);
 		$toc = false;
 
-		$this->contents = str_replace(
-			array('<pre', '</pre>'),
-			array('<notextile><pre', '</pre></notextile>'),
-			$this->contents
-		);
-
-		if( $this->CI->config->item('auto_toc', 'modl_devdocs')) {
-			$toc = $this->auto_toc();
+		$pages = array($this->contents);
+		if( $this->CI->config->item('auto_page', 'modl_devdocs')) {
+			$pages = $this->build_pages();
 		}
 
-		$parsed = $this->parse_code_blocks($this->contents);
-		$parsed = $this->CI->textile->TextileThis($parsed);
+		$this->links = $this->build_links($pages);
 
+		foreach( $pages as $i => $page ) {
+			$page = $this->parse_code_blocks($page);
 
-		$data = array(
-			'contents' => $parsed,
-			'toc' => $toc
-		);
+			$pages[$i] = $this->CI->textile->TextileThis(implode("", $page));
+		}
 
 		if( $this->CI->config->item('enable_cache', 'modl_devdocs') ) {
-			$this->CI->cache->save(hash('crc32', $this->path), serialize($data));
+			$this->CI->cache->save(hash('crc32', $this->path), serialize(array(
+				'pages' => $pages,
+				'links' => $links
+			)));
 		}
 
-		return $data;
+		$this->pages = $pages;
 	}
 
 	private function resolve_path($path = false) {
@@ -122,8 +152,7 @@ class Modl_devdocs {
 		return false;
 	}
 
-	private function parse_code_blocks($str) {
-		$lines = preg_split("/((?<!\\\|\r)\n)|((?<!\\\)\r\n)/", $str);
+	private function parse_code_blocks($lines) {
 		$out = array();
 
 		foreach( $lines as $line ) {
@@ -139,107 +168,42 @@ class Modl_devdocs {
 					']]></script></notextile>',
 					$line
 				);
+			} elseif( strpos($line, '<pre') !== false ) {
+				$line = str_replace(
+					'<pre',
+					'<notextile><pre',
+					$line
+				);
+			} elseif( strpos($line, '</pre>') !== false ) {
+				$line = str_replace(
+					'</pre>',
+					'</pre></notextile>',
+					$line
+				);
 			}
-
 			$out[] = $line;
 		}
 
-		return implode("\n", $out);
+		return $out;
 	}
 
-	private function auto_toc() {
-		$str = $this->contents;
+	private function build_pages() {
+		$lines = $this->contents;
 
-		// this is a un-textiled string, btw
-		$lines = preg_split("/((?<!\\\|\r)\n)|((?<!\\\)\r\n)/", $str);
-		$map = array();
-		$tree = array(
-			1 => false,
-			2 => false,
-			3 => false,
-			4 => false,
-			5 => false,
-			6 => false
-		);
-
-		$out = array();
+		$pages = array();
+		$current = array();
 
 		foreach( $lines as $line ) {
-			if( !strlen($line) ) {
-				$out[] = $line;
-				continue;
+			if( substr(trim($line), 0, 3) == 'h1.' && !empty($current)) {
+				$pages[] = $current;
+				$current = array();
 			}
 
-			if( preg_match('/h([1-6])\./', substr($line, 0, 3)) ) {
-				$hash = hash('crc32', $line);
-				$anchor = sprintf('(#%s)', $hash);
-
-				$line = $line;
-
-				$marker = substr($line, 0, 2);
-				$label = substr($line, 4);
-
-				$line = sprintf("%s%s. %s", $marker, $anchor, $label);
-
-				switch($marker) {
-					case 'h1' :
-						$map[$hash] = array('label' => $label, 'children' => array());
-						$tree[1] = $hash;
-						break;
-					case 'h2' :
-						$map[$tree[1]]['children'][$hash] = array('label' => $label, 'children' => array());
-						$tree[2] = $hash;
-						break;
-					case 'h3' :
-						$map[$tree[1]]['children'][$tree[2]]['children'][$hash] = array('label' => $label, 'children' => array());
-						$tree[3] = $hash;
-						break;
-					case 'h4' :
-						$map[$tree[1]]['children'][$tree[2]]['children'][$tree[3]]['children'][$hash] = array('label' => $label, 'children' => array());
-						$tree[3] = $hash;
-						break;
-					case 'h5' :
-						$map[$tree[1]]['children'][$tree[2]]['children'][$tree[3]]['children'][$tree[4]]['children'][$hash] = array('label' => $label, 'children' => array());
-						$tree[3] = $hash;
-						break;
-					case 'h6' :
-						$map[$tree[1]]['children'][$tree[2]]['children'][$tree[3]]['children'][$tree[4]]['children'][$tree[5]]['children'][$hash] = array('label' => $label);
-						$tree[3] = $hash;
-						break;
-				}
-
-			}
-
-			$out[] = $line;
+			$current[] = $line;
 		}
 
-		$toc = $this->build_toc($map);
+		$pages[] = $current;
 
-		$this->contents = implode("\n", $out);
-
-		return $toc;
-
+		return $pages;
 	}
-
-	public function build_toc($map) {
-		$out = array();
-		foreach( $map as $hash => $data ) {
-			$label = $data['label'];
-			$kids = '';
-
-			if( count($data['children']) ) {
-				$kids = $this->build_toc($data['children']);
-			}
-
-			$out[] = sprintf(
-				'<li><a href="#%s">%s</a>%s</li>',
-				$hash,
-				$label,
-				$kids
-			);
-		}
-
-		return '<ul>'.implode("\n", $out)."</ul>\n";
-	}
-
 }
