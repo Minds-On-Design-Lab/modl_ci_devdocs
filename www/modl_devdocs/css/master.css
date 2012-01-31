@@ -22,3 +22,22 @@ footer {
 	padding: 50px 0;
 }
 
+#main_docs ul li, #main_docs ol li {
+	list-style-type: disc;
+	margin: 0.5em 0;
+	margin-left: 2em;
+}
+#main_docs ol li {
+	list-style-type: decimal;
+}
+
+code {
+	background: #f1f1f1;
+	border: 1px solid #e1e1e1;
+	padding: 2px;
+	font-family: monospace;
+}
+
+p {
+	line-height: 1.5em;
+}
