@@ -183,7 +183,13 @@ h2. Config Options
 
 h2. Known Bugs
 
-* Empty lines in code examples cause Textile to freak out... working on that
+* Err...
+
+h2. Changelog
+
+* 1.0.2 - Added somewhat hacky support for the broken linebreaks in code blocks
+* 1.0.1 - Removed buggy TOC generator, added pagination
+* 1.0 - Initial release
 
 h2. License
 

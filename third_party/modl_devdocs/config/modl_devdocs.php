@@ -17,6 +17,6 @@ $config = array(
 
 	// please don't edit these
 
-	'version'		=> '1.0',
-	'build'			=> '20120130',
+	'version'		=> '1.0.2',
+	'build'			=> '20120131',
 );

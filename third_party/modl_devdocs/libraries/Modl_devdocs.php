@@ -115,7 +115,11 @@ class Modl_devdocs {
 		foreach( $pages as $i => $page ) {
 			$page = $this->parse_code_blocks($page);
 
-			$pages[$i] = $this->CI->textile->TextileThis(implode("", $page));
+			$pages[$i] = str_replace(
+				"%%BREAK%%",
+				"\n",
+				$this->CI->textile->TextileThis(implode("", $page))
+			);
 		}
 
 		if( $this->CI->config->item('enable_cache', 'modl_devdocs') ) {
@@ -155,31 +159,40 @@ class Modl_devdocs {
 	private function parse_code_blocks($lines) {
 		$out = array();
 
+		$inblock = false;
 		foreach( $lines as $line ) {
+			if( $inblock && trim($line) == '' ) {
+				$line = "%%BREAK%%";
+			}
+
 			if( strpos($line, '<example') !== false ) {
 				$line = preg_replace(
 					'/\<example( type\="([a-zA-Z]*)")?\>/',
 					'<notextile><script type="syntaxhighlighter" class="brush: $2"><![CDATA[',
 					$line
 				);
+				$inblock = true;
 			} elseif( strpos($line, '</example>') !== false ) {
 				$line = str_replace(
 					'</example>',
 					']]></script></notextile>',
 					$line
 				);
+				$inblock = false;
 			} elseif( strpos($line, '<pre') !== false ) {
 				$line = str_replace(
 					'<pre',
 					'<notextile><pre',
 					$line
 				);
+				$inblock = true;
 			} elseif( strpos($line, '</pre>') !== false ) {
 				$line = str_replace(
 					'</pre>',
 					'</pre></notextile>',
 					$line
 				);
+				$inblock = false;
 			}
 			$out[] = $line;
 		}
