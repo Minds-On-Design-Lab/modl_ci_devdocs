@@ -116,10 +116,11 @@ class Modl_devdocs {
 			$page = $this->parse_code_blocks($page);
 
 			$pages[$i] = str_replace(
-				"%%BREAK%%",
-				"\n",
+				array('%BASE_URL%', "%%BREAK%%"),
+				array(base_url('/'), "\n"),
 				$this->CI->textile->TextileThis(implode("", $page))
 			);
+
 		}
 
 		if( $this->CI->config->item('enable_cache', 'modl_devdocs') ) {
